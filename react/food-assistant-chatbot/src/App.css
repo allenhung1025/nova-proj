@@ -1,0 +1,19 @@
+/* Reset body margin and height */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html, #root, .App {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.App {
+  display: flex;
+  justify-content: flex-start; /* Align content at the top (by default) */
+  align-items: flex-start;
+  flex-direction: column; /* Stack content vertically */
+}
