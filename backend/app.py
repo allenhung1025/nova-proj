@@ -111,5 +111,64 @@ def getFoods() -> Response:
             "message": "Server error",
             "error": str(e)
         }, 500)
+
+
+@app.route("/api/foods/foodStatus", methods=["GET"])
+def getFoodStatusList() -> Response:
+    try:
+    
+        
+        # Get current date for comparison
+        current_date = datetime.now()
+        # Get all matching foods
+        foods = list(mongo_db.food.find())
+        
+        # Process each food item to add days until expiration
+        for food in foods:
+            # Convert expiration_date string to datetime
+            exp_date = datetime.strptime(food["expiration_date"], "%Y-%m-%d")
+            
+            # Calculate days until expiration
+            days_until_expiration = (exp_date - current_date).days
+            
+            # Add this information to the food item
+            food["days_until_expiration"] = days_until_expiration
+            
+            # Convert ObjectId to string for JSON serialization
+            food["_id"] = str(food["_id"])
+        
+        # Sort foods by days until expiration (ascending)
+        sorted_foods = sorted(foods, key=lambda x: x["days_until_expiration"])
+        sorted_soon_expire_soon_foods = []
+        sorted_good_foods = []
+        sorted_expired_foods = []
+        # Add expiration status for easier frontend handling
+        for food in sorted_foods:
+            if food["days_until_expiration"] < 0:
+                food["status"] = "expired"
+                sorted_expired_foods.append(food)
+            elif food["days_until_expiration"] <= 2:
+                food["status"] = "expiring_soon"
+                sorted_soon_expire_soon_foods.append(food)
+            else:
+                food["status"] = "good"
+                sorted_good_foods.append(food)
+        
+        return jsonify({
+            "foods": sorted_foods,
+            "sorted_soon_expired_foods": sorted_soon_expire_soon_foods,
+            "sorted_good_foods": sorted_good_foods,
+            "sorted_expired_foods": sorted_expired_foods,
+            "total_count": len(sorted_foods),
+            "expired_count": sum(1 for food in sorted_foods if food["status"] == "expired"),
+            "expiring_soon_count": sum(1 for food in sorted_foods if food["status"] == "expiring_soon"),
+            "good_count": len(sorted_good_foods)
+        })
+        
+    except Exception as e:
+        return make_response({
+            "message": "Server error",
+            "error": str(e)
+        }, 500)
 if __name__ == "__main__":
     app.run(port=5000)
