@@ -1,11 +1,10 @@
 import React from 'react';
-import Chatbot from './Chatbot';
+import Layout from './Layout';
 
 function App() {
   return (
     <div className="App">
-      <h1>Food Assistant Chatbot</h1>
-      <Chatbot />
+      <Layout />
     </div>
   );
 }
